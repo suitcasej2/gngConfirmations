@@ -46,7 +46,8 @@ See `.env.example`. Use the same `AIRTABLE_API_KEY`, `AIRTABLE_BASE_ID`, and har
 Optional:
 
 - `AIRTABLE_CURRENT_HARVEST_FILTER` — custom `filterByFormula`
-- `PUBLIC_ALLOWED_ORIGINS` — comma-separated list; if set, browser `Origin` must match one entry (curl without `Origin` still works)
+
+The public harvest API always sends `Access-Control-Allow-Origin: *` so SquareSpace and custom domains can call it without extra CORS configuration.
 
 ## Deploy
 

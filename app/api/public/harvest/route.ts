@@ -1,12 +1,22 @@
-import { corsHeadersForRequest } from "@/lib/cors";
 import { fetchCurrentPublicHarvest, fetchHarvestByRecordId } from "@/lib/public-harvest";
 
 export const dynamic = "force-dynamic";
 
-function json(data: unknown, request: Request, init?: ResponseInit) {
+/**
+ * Wildcard CORS: this route is a public read-only JSON API meant to be called from
+ * SquareSpace and other static hosts (wildcard avoids brittle per-domain setup).
+ */
+function publicCorsHeaders(): Record<string, string> {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "*",
+  };
+}
+
+function json(data: unknown, init?: ResponseInit) {
   const headers = new Headers(init?.headers);
-  const cors = corsHeadersForRequest(request);
-  for (const [k, v] of Object.entries(cors)) {
+  for (const [k, v] of Object.entries(publicCorsHeaders())) {
     headers.set(k, v);
   }
   headers.set("Content-Type", "application/json; charset=utf-8");
@@ -14,8 +24,8 @@ function json(data: unknown, request: Request, init?: ResponseInit) {
   return new Response(JSON.stringify(data), { ...init, headers });
 }
 
-export async function OPTIONS(request: Request) {
-  const headers = new Headers(corsHeadersForRequest(request));
+export async function OPTIONS() {
+  const headers = new Headers(publicCorsHeaders());
   headers.set("Access-Control-Max-Age", "86400");
   return new Response(null, { status: 204, headers });
 }
@@ -29,7 +39,7 @@ export async function GET(request: Request) {
       ? await fetchHarvestByRecordId(recordId)
       : await fetchCurrentPublicHarvest();
 
-    return json({ ok: true as const, harvest }, request);
+    return json({ ok: true as const, harvest });
   } catch (err) {
     const message =
       err instanceof Error
@@ -37,6 +47,6 @@ export async function GET(request: Request) {
         : typeof err === "string"
           ? err
           : "Failed to load harvest.";
-    return json({ ok: false as const, error: message }, request, { status: 500 });
+    return json({ ok: false as const, error: message }, { status: 500 });
   }
 }

@@ -20,7 +20,9 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <script>
   (function () {
-    var API_BASE = "https://YOUR-API-HOST-HERE";
+    // Must be your deployed gng-confirmations origin only, e.g. https://gng-confirmations.vercel.app
+    // (not this file path, not your SquareSpace URL)
+    var API_BASE = "https://gng-confirmations.vercel.app/";
 
     var nameEl = document.getElementById("gng-harvest-name");
     var whenEl = document.getElementById("gng-harvest-when");
@@ -29,8 +31,6 @@
     var params = new URLSearchParams(window.location.search);
     var recordId = params.get("recordId") || params.get("harvest");
 
-    var url = API_BASE + "/api/public/harvest" + (recordId ? "?recordId=" + encodeURIComponent(recordId) : "");
-
     function showError(msg) {
       if (errEl) {
         errEl.hidden = false;
@@ -38,6 +38,25 @@
       }
       if (nameEl) nameEl.textContent = "Details unavailable";
       if (whenEl) whenEl.textContent = "";
+    }
+
+    function normalizeApiBase(base) {
+      var s = String(base || "").trim();
+      while (s.endsWith("/")) s = s.slice(0, -1);
+      return s;
+    }
+
+    var apiOrigin = normalizeApiBase(API_BASE);
+    var url =
+      apiOrigin +
+      "/api/public/harvest" +
+      (recordId ? "?recordId=" + encodeURIComponent(recordId) : "");
+
+    if (!/^https?:\/\//i.test(apiOrigin) || /YOUR-API-HOST-HERE/i.test(apiOrigin)) {
+      showError(
+        "Set API_BASE in this embed to your live API (https://…), not a file path. Example: https://your-app.vercel.app",
+      );
+      return;
     }
 
     function formatWhen(h) {
@@ -63,8 +82,21 @@
 
     fetch(url)
       .then(function (r) {
-        return r.json().then(function (body) {
-          if (!r.ok) throw new Error(body.error || "Request failed");
+        return r.text().then(function (text) {
+          var trimmed = text.trim();
+          if (trimmed.charAt(0) === "<") {
+            throw new Error(
+              "The server returned a web page instead of JSON—usually a wrong API_BASE or a bad URL. Open this in a new tab to verify it shows JSON: " +
+                url,
+            );
+          }
+          var body;
+          try {
+            body = JSON.parse(text);
+          } catch (ignore) {
+            throw new Error("API did not return valid JSON. Check: " + url);
+          }
+          if (!r.ok) throw new Error((body && body.error) || "Request failed (" + r.status + ")");
           return body;
         });
       })
@@ -79,7 +111,14 @@
         celebrate();
       })
       .catch(function (e) {
-        showError(e.message || "Could not load harvest details.");
+        var msg = e && e.message ? e.message : "Could not load harvest details.";
+        if (e && e.name === "TypeError" && /fetch/i.test(msg)) {
+          msg =
+            "Network or CORS error—open this URL in a new tab (should be JSON): " +
+            url +
+            ". If it works there, redeploy gng-confirmations with the latest API code (wildcard CORS). Also confirm API_BASE uses https://.";
+        }
+        showError(msg);
       });
   })();
 </script>
