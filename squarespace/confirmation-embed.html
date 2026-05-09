@@ -102,7 +102,9 @@
       })
       .then(function (data) {
         if (!data.harvest) {
-          showError("No active harvest was found. Check Airtable status fields or pass recordId in the URL.");
+          showError(
+            "No Sent harvest was found in Airtable, or add ?recordId=rec… to this page’s URL for a specific harvest.",
+          );
           return;
         }
         var h = data.harvest;

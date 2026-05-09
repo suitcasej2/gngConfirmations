@@ -33,13 +33,11 @@ Use this when the thank-you URL includes the harvest record id (see **Airtable r
 
 ## Which row is “current”?
 
-By default the service loads the single most recently modified harvest where status is one of:
+By default the service loads the single most recently modified harvest where **`Status` is `Sent`**, matching the live “sent” cycle in `gng-dashboard`. Override with `AIRTABLE_CURRENT_HARVEST_FILTER` if your base uses a different label.
 
-`Publish`, `Published`, `Sent`, or `Completed`
+If the API returns `"harvest": null`, no row is `Sent` yet, or the option text in Airtable does not match exactly (including spaces).
 
-Those labels match how `gng-dashboard` and the outbox/live tables talk to Airtable. If your base uses different single-select options, set `AIRTABLE_CURRENT_HARVEST_FILTER` to a full Airtable `filterByFormula` string.
-
-If the API returns `"harvest": null`, no row matched that formula (for example everything is still `Draft`, or the option text differs slightly from the list above—check spelling and spaces in Airtable).
+For RSVPs **before** a harvest is marked `Sent`, use **`/api/public/harvest?recordId=rec…`** (and the same query param on your SquareSpace thank-you URL) so the page still resolves a specific harvest.
 
 ## Environment variables
 
