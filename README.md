@@ -33,11 +33,13 @@ Use this when the thank-you URL includes the harvest record id (see **Airtable r
 
 ## Which row is “current”?
 
-By default the service loads the single most recently modified harvest where:
+By default the service loads the single most recently modified harvest where status is one of:
 
-`OR({Status} = 'Publish', {Status} = 'Published')`
+`Publish`, `Published`, `Sent`, or `Completed`
 
-matching the mix of status labels used in `gng-dashboard`. Override with `AIRTABLE_CURRENT_HARVEST_FILTER` (a full Airtable formula).
+Those labels match how `gng-dashboard` and the outbox/live tables talk to Airtable. If your base uses different single-select options, set `AIRTABLE_CURRENT_HARVEST_FILTER` to a full Airtable `filterByFormula` string.
+
+If the API returns `"harvest": null`, no row matched that formula (for example everything is still `Draft`, or the option text differs slightly from the list above—check spelling and spaces in Airtable).
 
 ## Environment variables
 

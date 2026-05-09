@@ -22,7 +22,17 @@ function mapFieldsToPayload(recordId: string, fields: Record<string, unknown>): 
 function defaultCurrentHarvestFilterFormula(): string {
   const override = process.env.AIRTABLE_CURRENT_HARVEST_FILTER?.trim();
   if (override) return override;
-  return "OR({Status} = 'Publish', {Status} = 'Published')";
+  // Keep in sync with gng-dashboard: form uses "Published", live/outbox uses
+  // "Publish", "Sent", and "Completed". Excluding "Draft" alone would include
+  // unexpected labels; this OR covers the known lifecycle labels.
+  return [
+    "OR(",
+    "{Status} = 'Publish',",
+    "{Status} = 'Published',",
+    "{Status} = 'Sent',",
+    "{Status} = 'Completed'",
+    ")",
+  ].join("");
 }
 
 export async function fetchHarvestByRecordId(recordId: string): Promise<PublicHarvestPayload | null> {
