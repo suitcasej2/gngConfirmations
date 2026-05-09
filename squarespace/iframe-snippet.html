@@ -1,0 +1,23 @@
+<!--
+  SquareSpace (recommended): many templates block external scripts and fetch() to third-party APIs.
+  Use an IFRAME instead—the thank-you UI is rendered on your Vercel app (server-side), so SquareSpace
+  never loads a script from Vercel.
+
+  1) Replace YOUR_VERCEL_HOST with your deployment hostname (e.g. gng-confirmations.vercel.app); keep https:// in src.
+  2) Add a Code block and paste only the <iframe> line (or wrap in a <div> for layout).
+  3) Optional: add ?recordId=recXXXXXXXX to the iframe src (and/or pass it from your Airtable redirect
+     by making the whole SquareSpace page URL contain the id—you may need a static page per harvest or
+     SquareSpace URL params + JS on their side to set iframe src; simplest is one embed URL per harvest).
+
+  Adjust width/min-height to fit your layout.
+-->
+
+<div style="max-width: 42rem; margin: 0 auto">
+  <iframe
+    title="RSVP confirmation"
+    src="https://YOUR_VERCEL_HOST/embed/rsvp-thanks"
+    style="width: 100%; border: 0; display: block; min-height: 420px"
+    loading="lazy"
+    referrerpolicy="strict-origin-when-cross-origin"
+  ></iframe>
+</div>

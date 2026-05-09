@@ -1,6 +1,6 @@
 # gng-confirmations
 
-Small **Next.js** service that reads the current harvest from **Airtable** and exposes a **public JSON API** for a **SquareSpace** RSVP thank-you page. The SquareSpace page runs in the subscriber’s browser, calls this API, and shows harvest name, date, and time with a light celebration animation.
+Small **Next.js** service that reads the current harvest from **Airtable** and powers a **SquareSpace** RSVP thank-you experience. Prefer the **iframe embed** (`/embed/rsvp-thanks`): SquareSpace renders your page, while harvest details are **server-rendered on Vercel**—no `fetch()` or third-party scripts required on SquareSpace (avoids strict CSP). A **JSON/JSONP API** remains available for other hosts.
 
 Because each page load queries Airtable (with `Cache-Control: no-store`), the content tracks whatever the CEO last published—no separate database or manual sync.
 
@@ -31,6 +31,14 @@ If nothing matches the configured filter, `harvest` is `null`.
 
 Use this when the thank-you URL includes the harvest record id (see **Airtable redirect** below) so subscribers always see the harvest they RSVPed for.
 
+### JSONP (SquareSpace–friendly)
+
+`GET /api/public/harvest?callback=YourGlobalFn`
+
+Returns **JavaScript**: `YourGlobalFn({"ok":true,"harvest":{…}});` with `Content-Type: application/javascript`.
+
+Some SquareSpace templates block **both** `fetch()` and external `<script src>`. Use the **iframe** embed instead of JSONP. The callback name must match `/^[a-zA-Z_$][a-zA-Z0-9_$]{0,63}$/`.
+
 ## Which row is “current”?
 
 By default the service loads the single most recently modified harvest where **`Status` is `Sent`**, matching the live “sent” cycle in `gng-dashboard`. Override with `AIRTABLE_CURRENT_HARVEST_FILTER` if your base uses a different label.
@@ -53,13 +61,15 @@ The public harvest API always sends `Access-Control-Allow-Origin: *` so SquareSp
 
 Typical: deploy this folder to [Vercel](https://vercel.com) as its own project. Set env vars in the project settings, then note the production URL (for example `https://gng-confirmations.vercel.app`).
 
-## SquareSpace page
+## SquareSpace page (recommended)
 
 1. Create a dedicated thank-you page.
-2. Paste the contents of `squarespace/confirmation-embed.html` into a **Code** block.
-3. Replace `https://YOUR-API-HOST-HERE` with your deployed API origin (no trailing slash).
+2. Open `squarespace/confirmation-embed.html`, replace `YOUR_VERCEL_HOST` with your deployment hostname (e.g. `gng-confirmations.vercel.app`—keep the existing `https://` in the `src`).
+3. Paste the **iframe** `<div>…</div>` into a **Code** block.
 
-Tune fonts and colors in the `<style>` block to match your site.
+The iframe loads **`/embed/rsvp-thanks`**, which reads Airtable on the server and returns HTML + CSS (celebration animation, no canvas dependency). Response headers allow embedding from any parent (`Content-Security-Policy: frame-ancestors *`).
+
+If your template still blocks iframes to external sites (rare), you must relax that in SquareSpace or use a **custom domain** on Vercel and try again.
 
 ## Airtable form redirect
 

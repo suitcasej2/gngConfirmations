@@ -1,187 +1,28 @@
 <!--
-  SquareSpace: add a Code block (or Code Injection on this page only) and paste this HTML.
-  Set API_BASE to your deployed gng-confirmations URL (no trailing slash), e.g. https://gng-confirmations.vercel.app
+  SquareSpace RSVP thank-you (use this file)
 
-  Optional: append ?recordId=recXXXXXXXX to the page URL (from your Airtable form redirect)
-  so the thanks page always shows the harvest they RSVPed for, even if a newer harvest exists.
+  Many SquareSpace sites block BOTH fetch() and external <script src> to third-party hosts (CSP).
+  The reliable fix is an IFRAME: the page below loads from YOUR Vercel app; Airtable is read on the
+  server, so SquareSpace never runs a script from Vercel.
+
+  1) Deploy gng-confirmations and set Airtable env vars on Vercel.
+  2) Replace YOUR_VERCEL_HOST below with your origin, e.g. https://gng-confirmations.vercel.app
+  3) Add a Code block on your thank-you page and paste the <div>…</div> block only.
+
+  Optional: set the iframe src to …/embed/rsvp-thanks?recordId=recXXXXXXXX for a specific harvest
+  (one Code block / one page per harvest, or advanced: automation that sends users to a URL that
+  includes the id and use SquareSpace code to forward it—iframe-only setups often use a fixed recordId
+  per RSVP form).
+
+  Live embed URL (test in browser): YOUR_VERCEL_HOST/embed/rsvp-thanks
 -->
-<div id="gng-rsvp-thanks" class="gng-rsvp-thanks" aria-live="polite">
-  <div class="gng-rsvp-thanks__burst" aria-hidden="true"></div>
-  <p class="gng-rsvp-thanks__eyebrow">You’re in</p>
-  <h2 class="gng-rsvp-thanks__title">Thank you for RSVPing!</h2>
-  <p class="gng-rsvp-thanks__sub">Here’s your harvest pickup details.</p>
-  <div class="gng-rsvp-thanks__card">
-    <p class="gng-rsvp-thanks__harvest" id="gng-harvest-name">Loading…</p>
-    <p class="gng-rsvp-thanks__meta" id="gng-harvest-when"></p>
-  </div>
-  <p class="gng-rsvp-thanks__error" id="gng-harvest-error" hidden></p>
+
+<div style="max-width: 42rem; margin: 0 auto">
+  <iframe
+    title="RSVP confirmation"
+    src="https://YOUR_VERCEL_HOST/embed/rsvp-thanks"
+    style="width: 100%; border: 0; display: block; min-height: 420px"
+    loading="lazy"
+    referrerpolicy="strict-origin-when-cross-origin"
+  ></iframe>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-<script>
-  (function () {
-    // Must be your deployed gng-confirmations origin only, e.g. https://gng-confirmations.vercel.app
-    // (not this file path, not your SquareSpace URL)
-    var API_BASE = "https://gng-confirmations.vercel.app/";
-
-    var nameEl = document.getElementById("gng-harvest-name");
-    var whenEl = document.getElementById("gng-harvest-when");
-    var errEl = document.getElementById("gng-harvest-error");
-
-    var params = new URLSearchParams(window.location.search);
-    var recordId = params.get("recordId") || params.get("harvest");
-
-    function showError(msg) {
-      if (errEl) {
-        errEl.hidden = false;
-        errEl.textContent = msg;
-      }
-      if (nameEl) nameEl.textContent = "Details unavailable";
-      if (whenEl) whenEl.textContent = "";
-    }
-
-    function normalizeApiBase(base) {
-      var s = String(base || "").trim();
-      while (s.endsWith("/")) s = s.slice(0, -1);
-      return s;
-    }
-
-    var apiOrigin = normalizeApiBase(API_BASE);
-    var url =
-      apiOrigin +
-      "/api/public/harvest" +
-      (recordId ? "?recordId=" + encodeURIComponent(recordId) : "");
-
-    if (!/^https?:\/\//i.test(apiOrigin) || /YOUR-API-HOST-HERE/i.test(apiOrigin)) {
-      showError(
-        "Set API_BASE in this embed to your live API (https://…), not a file path. Example: https://your-app.vercel.app",
-      );
-      return;
-    }
-
-    function formatWhen(h) {
-      var parts = [];
-      if (h.startDate) parts.push(h.startDate);
-      if (h.startTime) {
-        var t = h.startTime;
-        if (h.endTime) t = t + " – " + h.endTime;
-        parts.push(t);
-      }
-      return parts.join(" · ");
-    }
-
-    function celebrate() {
-      if (typeof confetti !== "function") return;
-      var end = Date.now() + 900;
-      (function frame() {
-        confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
-        confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
-        if (Date.now() < end) requestAnimationFrame(frame);
-      })();
-    }
-
-    fetch(url)
-      .then(function (r) {
-        return r.text().then(function (text) {
-          var trimmed = text.trim();
-          if (trimmed.charAt(0) === "<") {
-            throw new Error(
-              "The server returned a web page instead of JSON—usually a wrong API_BASE or a bad URL. Open this in a new tab to verify it shows JSON: " +
-                url,
-            );
-          }
-          var body;
-          try {
-            body = JSON.parse(text);
-          } catch (ignore) {
-            throw new Error("API did not return valid JSON. Check: " + url);
-          }
-          if (!r.ok) throw new Error((body && body.error) || "Request failed (" + r.status + ")");
-          return body;
-        });
-      })
-      .then(function (data) {
-        if (!data.harvest) {
-          showError(
-            "No Sent harvest was found in Airtable, or add ?recordId=rec… to this page’s URL for a specific harvest.",
-          );
-          return;
-        }
-        var h = data.harvest;
-        if (nameEl) nameEl.textContent = h.name;
-        if (whenEl) whenEl.textContent = formatWhen(h);
-        celebrate();
-      })
-      .catch(function (e) {
-        var msg = e && e.message ? e.message : "Could not load harvest details.";
-        if (e && e.name === "TypeError" && /fetch/i.test(msg)) {
-          msg =
-            "Network or CORS error—open this URL in a new tab (should be JSON): " +
-            url +
-            ". If it works there, redeploy gng-confirmations with the latest API code (wildcard CORS). Also confirm API_BASE uses https://.";
-        }
-        showError(msg);
-      });
-  })();
-</script>
-
-<style>
-  .gng-rsvp-thanks {
-    position: relative;
-    text-align: center;
-    padding: 2.5rem 1.25rem 2rem;
-    max-width: 36rem;
-    margin: 0 auto;
-  }
-  .gng-rsvp-thanks__burst {
-    position: absolute;
-    inset: -20% -10% auto;
-    height: 12rem;
-    background: radial-gradient(circle at 30% 40%, rgba(255, 214, 98, 0.45), transparent 55%),
-      radial-gradient(circle at 70% 30%, rgba(139, 195, 74, 0.35), transparent 50%);
-    pointer-events: none;
-  }
-  .gng-rsvp-thanks__eyebrow {
-    position: relative;
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin: 0 0 0.5rem;
-    opacity: 0.85;
-  }
-  .gng-rsvp-thanks__title {
-    position: relative;
-    font-size: clamp(1.75rem, 4vw, 2.25rem);
-    line-height: 1.15;
-    margin: 0 0 0.5rem;
-  }
-  .gng-rsvp-thanks__sub {
-    position: relative;
-    margin: 0 0 1.75rem;
-    opacity: 0.88;
-  }
-  .gng-rsvp-thanks__card {
-    position: relative;
-    border-radius: 1rem;
-    padding: 1.25rem 1.5rem;
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06), 0 12px 40px -20px rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-  }
-  .gng-rsvp-thanks__harvest {
-    font-size: 1.35rem;
-    font-weight: 600;
-    margin: 0 0 0.35rem;
-  }
-  .gng-rsvp-thanks__meta {
-    margin: 0;
-    font-size: 1.05rem;
-    opacity: 0.9;
-  }
-  .gng-rsvp-thanks__error {
-    position: relative;
-    margin-top: 1rem;
-    color: #b42318;
-    font-size: 0.95rem;
-  }
-</style>

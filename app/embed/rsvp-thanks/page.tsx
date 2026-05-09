@@ -1,0 +1,80 @@
+import { fetchCurrentPublicHarvest, fetchHarvestByRecordId } from "@/lib/public-harvest";
+import styles from "./rsvp-thanks.module.css";
+
+export const dynamic = "force-dynamic";
+
+function formatWhen(input: {
+  startDate: string | null;
+  startTime: string | null;
+  endTime: string | null;
+}) {
+  const parts: string[] = [];
+  if (input.startDate) parts.push(input.startDate);
+  if (input.startTime) {
+    let t = input.startTime;
+    if (input.endTime) t = `${t} – ${input.endTime}`;
+    parts.push(t);
+  }
+  return parts.join(" · ");
+}
+
+type Search = { recordId?: string | string[] };
+
+export default async function RsvpThanksEmbedPage({
+  searchParams,
+}: {
+  searchParams: Promise<Search>;
+}) {
+  const sp = await searchParams;
+  const raw = sp.recordId;
+  const recordId = Array.isArray(raw) ? raw[0]?.trim() : raw?.trim();
+
+  let harvest = null as Awaited<ReturnType<typeof fetchCurrentPublicHarvest>>;
+  let loadError: string | null = null;
+
+  try {
+    harvest = recordId ? await fetchHarvestByRecordId(recordId) : await fetchCurrentPublicHarvest();
+  } catch (e) {
+    loadError =
+      e instanceof Error ? e.message : typeof e === "string" ? e : "Could not load harvest.";
+  }
+
+  return (
+    <div className={styles.root}>
+      <div className={styles.burst} aria-hidden />
+      <span className={styles.sparkle} aria-hidden />
+      <span className={styles.sparkle} aria-hidden />
+      <span className={styles.sparkle} aria-hidden />
+      <span className={styles.sparkle} aria-hidden />
+      <span className={styles.sparkle} aria-hidden />
+
+      {loadError ? (
+        <>
+          <p className={styles.eyebrow}>RSVP</p>
+          <h1 className={styles.title}>Something went wrong</h1>
+          <p className={`${styles.error} ${styles.muted}`}>{loadError}</p>
+        </>
+      ) : !harvest ? (
+        <>
+          <p className={styles.eyebrow}>You’re in</p>
+          <h1 className={styles.title}>Thank you for RSVPing!</h1>
+          <p className={styles.sub}>We couldn’t load pickup details.</p>
+          <p className={styles.muted}>
+            No harvest with status <strong>Sent</strong> was found, or add{" "}
+            <code>?recordId=rec…</code> to this embed URL for a specific harvest.
+          </p>
+        </>
+      ) : (
+        <>
+          <p className={styles.eyebrow}>You’re in</p>
+          <h1 className={styles.title}>Thank you for RSVPing!</h1>
+          <p className={styles.sub}>Here’s your harvest pickup details.</p>
+          <div className={styles.card}>
+            <p className={styles.harvestName}>{harvest.name}</p>
+            <p className={styles.meta}>{formatWhen(harvest)}</p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
