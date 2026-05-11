@@ -1,6 +1,7 @@
 import { fetchCurrentPublicHarvest, fetchHarvestByRecordId } from "@/lib/public-harvest";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 /**
  * Wildcard CORS: this route is a public read-only JSON API meant to be called from

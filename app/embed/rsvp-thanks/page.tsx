@@ -1,3 +1,4 @@
+import { messageFromUnknown } from "@/lib/airtable-errors";
 import { getPublicHarvestForEmbedCached } from "@/lib/embed-harvest-cache";
 import styles from "./rsvp-thanks.module.css";
 
@@ -33,8 +34,7 @@ export default async function RsvpThanksEmbedPage({
   try {
     harvest = await getPublicHarvestForEmbedCached(recordId);
   } catch (e) {
-    loadError =
-      e instanceof Error ? e.message : typeof e === "string" ? e : "Could not load harvest.";
+    loadError = messageFromUnknown(e);
   }
 
   return (

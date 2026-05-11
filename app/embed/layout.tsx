@@ -1,3 +1,6 @@
+/** Airtable SDK expects Node; avoids opaque failures on Edge. */
+export const runtime = "nodejs";
+
 export default function EmbedLayout({ children }: { children: React.ReactNode }) {
   return (
     <div

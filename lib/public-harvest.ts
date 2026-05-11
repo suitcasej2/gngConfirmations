@@ -1,4 +1,5 @@
 import { getAirtableBase, getHarvestNameField, getHarvestsTableName } from "@/lib/airtable";
+import { messageFromUnknown } from "@/lib/airtable-errors";
 import { getHarvestNameFromAirtableFields, getStringField } from "@/lib/harvest-display";
 
 export type PublicHarvestPayload = {
@@ -37,28 +38,50 @@ export async function fetchHarvestByRecordId(recordId: string): Promise<PublicHa
   return mapFieldsToPayload(record.id, fields);
 }
 
+function currentHarvestSelectOptions(narrowFields: boolean) {
+  const formula = defaultCurrentHarvestFilterFormula();
+  const baseOpts = {
+    filterByFormula: formula,
+    sort: [{ field: "Last Modified", direction: "desc" as const }],
+    maxRecords: 1,
+  };
+  if (!narrowFields) return baseOpts;
+  const nameField = getHarvestNameField();
+  const fieldSet = new Set([
+    nameField,
+    "Last Modified",
+    "Start Date",
+    "Start Time",
+    "End Time",
+    "Header Image URL",
+  ]);
+  return {
+    ...baseOpts,
+    fields: Array.from(fieldSet),
+  };
+}
+
 export async function fetchCurrentPublicHarvest(): Promise<PublicHarvestPayload | null> {
   const base = getAirtableBase();
   const tableName = getHarvestsTableName();
-  const formula = defaultCurrentHarvestFilterFormula();
 
-  const records = await base(tableName)
-    .select({
-      filterByFormula: formula,
-      sort: [{ field: "Last Modified", direction: "desc" }],
-      maxRecords: 1,
-      // Primary field is always returned; other columns must be listed or they are omitted.
-      // Always request the harvest title field — it may not be the table primary (was causing "Untitled harvest").
-      fields: [
-        getHarvestNameField(),
-        "Last Modified",
-        "Start Date",
-        "Start Time",
-        "End Time",
-        "Header Image URL",
-      ],
-    })
-    .firstPage();
+  let records: readonly { id: string; fields: Record<string, unknown> }[];
+
+  try {
+    records = (await base(tableName).select(currentHarvestSelectOptions(true)).firstPage()) as unknown as readonly {
+      id: string;
+      fields: Record<string, unknown>;
+    }[];
+  } catch {
+    try {
+      records = (await base(tableName).select(currentHarvestSelectOptions(false)).firstPage()) as unknown as readonly {
+        id: string;
+        fields: Record<string, unknown>;
+      }[];
+    } catch (wideErr) {
+      throw new Error(messageFromUnknown(wideErr));
+    }
+  }
 
   const first = records[0];
   if (!first) return null;

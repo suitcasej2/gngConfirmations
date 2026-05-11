@@ -19,5 +19,6 @@ export function getHarvestsTableName() {
 
 /** Must match the Airtable field name as the API sees it (UI can hide a leading BOM). */
 export function getHarvestNameField() {
-  return process.env.AIRTABLE_HARVEST_NAME_FIELD || "Harvest Name";
+  const v = process.env.AIRTABLE_HARVEST_NAME_FIELD?.trim();
+  return v && v.length > 0 ? v : "Harvest Name";
 }
