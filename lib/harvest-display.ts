@@ -1,14 +1,23 @@
+import { getHarvestNameField } from "@/lib/airtable";
+
+function normalizeFieldKey(k: string) {
+  return k.replace(/^\uFEFF+/, "").trim();
+}
+
 /**
- * Mirrors gng-dashboard field helpers so public responses stay consistent.
+ * Mirrors gng-dashboard: uses AIRTABLE_HARVEST_NAME_FIELD (default "Harvest Name") and BOM-safe keys.
  */
 export function getHarvestNameFromAirtableFields(
   fields: Record<string, unknown> | null | undefined,
 ) {
   if (!fields) return "Untitled harvest";
 
+  const configured = normalizeFieldKey(getHarvestNameField());
+  const legacy = "Harvest Name";
+
   for (const [k, v] of Object.entries(fields)) {
-    const key = k.replace(/^\uFEFF+/, "").trim();
-    if (key === "Harvest Name" && typeof v === "string" && v.trim()) {
+    const key = normalizeFieldKey(k);
+    if ((key === configured || key === legacy) && typeof v === "string" && v.trim()) {
       return v.trim();
     }
   }
@@ -21,7 +30,10 @@ export function getStringField(
   name: string,
 ) {
   if (!fields) return null;
-  const direct = fields[name];
-  if (typeof direct === "string" && direct.trim()) return direct.trim();
+  const want = normalizeFieldKey(name);
+  for (const [k, v] of Object.entries(fields)) {
+    if (normalizeFieldKey(k) !== want) continue;
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
   return null;
 }

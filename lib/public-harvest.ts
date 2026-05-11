@@ -1,4 +1,4 @@
-import { getAirtableBase, getHarvestsTableName } from "@/lib/airtable";
+import { getAirtableBase, getHarvestNameField, getHarvestsTableName } from "@/lib/airtable";
 import { getHarvestNameFromAirtableFields, getStringField } from "@/lib/harvest-display";
 
 export type PublicHarvestPayload = {
@@ -47,8 +47,16 @@ export async function fetchCurrentPublicHarvest(): Promise<PublicHarvestPayload 
       filterByFormula: formula,
       sort: [{ field: "Last Modified", direction: "desc" }],
       maxRecords: 1,
-      // Smaller payload than full record; primary field is always returned by Airtable.
-      fields: ["Last Modified", "Start Date", "Start Time", "End Time", "Header Image URL"],
+      // Primary field is always returned; other columns must be listed or they are omitted.
+      // Always request the harvest title field — it may not be the table primary (was causing "Untitled harvest").
+      fields: [
+        getHarvestNameField(),
+        "Last Modified",
+        "Start Date",
+        "Start Time",
+        "End Time",
+        "Header Image URL",
+      ],
     })
     .firstPage();
 

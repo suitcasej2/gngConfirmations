@@ -16,3 +16,8 @@ export function getAirtableBase() {
 export function getHarvestsTableName() {
   return process.env.AIRTABLE_HARVESTS_TABLE_NAME || "Harvests";
 }
+
+/** Must match the Airtable field name as the API sees it (UI can hide a leading BOM). */
+export function getHarvestNameField() {
+  return process.env.AIRTABLE_HARVEST_NAME_FIELD || "Harvest Name";
+}
