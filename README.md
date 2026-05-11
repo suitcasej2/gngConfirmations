@@ -18,7 +18,8 @@ Returns:
     "name": "Spring Greens Box",
     "startDate": "2026-05-15",
     "startTime": "10:00am",
-    "endTime": "2:00pm"
+    "endTime": "2:00pm",
+    "headerImageUrl": "https://…"
   }
 }
 ```
@@ -65,9 +66,11 @@ Typical: deploy this folder to [Vercel](https://vercel.com) as its own project. 
 
 1. Create a dedicated thank-you page.
 2. Open `squarespace/confirmation-embed.html`, replace `YOUR_VERCEL_HOST` with your deployment hostname (e.g. `gng-confirmations.vercel.app`—keep the existing `https://` in the `src`).
-3. Paste the **iframe** `<div>…</div>` into a **Code** block.
+3. Paste the **`<link>` preconnect lines and the iframe `<div>…</div>`** into a **Code** block (replace every `YOUR_VERCEL_HOST`). If SquareSpace strips `<link>` tags from Code blocks, add the same two lines under **Settings → Advanced → Code Injection → Header** for that page only.
 
-The iframe loads **`/embed/rsvp-thanks`**, which reads Airtable on the server and returns HTML + CSS (celebration animation, no canvas dependency). Response headers allow embedding from any parent (`Content-Security-Policy: frame-ancestors *`).
+The iframe loads **`/embed/rsvp-thanks`**, which reads Airtable on the server and returns HTML + CSS (celebration animation, optional **Header Image URL** hero). Response headers allow embedding from any parent (`Content-Security-Policy: frame-ancestors *`).
+
+**Speed:** preconnect + `loading="eager"` on the iframe, a **loading skeleton** (`loading.tsx`), a **short server cache** for Airtable (default **45s**, `EMBED_CACHE_SECONDS`), and a **narrow `fields[]`** on the “current Sent harvest” query reduce wait time on repeat views and slightly on first load.
 
 If your template still blocks iframes to external sites (rare), you must relax that in SquareSpace or use a **custom domain** on Vercel and try again.
 

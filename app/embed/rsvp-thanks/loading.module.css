@@ -1,0 +1,118 @@
+.root {
+  position: relative;
+  text-align: center;
+  padding: 2rem 1.25rem 2.5rem;
+  max-width: 36rem;
+  margin: 0 auto;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.burst {
+  position: absolute;
+  inset: -15% -10% auto;
+  height: 11rem;
+  width: 100%;
+  background: radial-gradient(circle at 30% 40%, rgba(255, 214, 98, 0.35), transparent 55%),
+    radial-gradient(circle at 70% 30%, rgba(139, 195, 74, 0.25), transparent 50%);
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.shimmer {
+  width: 72%;
+  max-width: 14rem;
+  height: 10rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(90deg, #e8e0d8 0%, #f5f0ea 40%, #e8e0d8 80%);
+  background-size: 200% 100%;
+  animation: pulse 1.1s ease-in-out infinite;
+  margin-bottom: 1.25rem;
+}
+
+.lineSm,
+.lineLg,
+.lineMd {
+  border-radius: 999px;
+  background: #e0d8d0;
+  margin-left: auto;
+  margin-right: auto;
+  animation: pulse 1.1s ease-in-out infinite;
+}
+
+.lineSm {
+  width: 5rem;
+  height: 0.5rem;
+  margin-bottom: 0.65rem;
+  animation-delay: 0.05s;
+}
+
+.lineLg {
+  width: 85%;
+  max-width: 18rem;
+  height: 1.35rem;
+  margin-bottom: 0.5rem;
+  animation-delay: 0.1s;
+}
+
+.lineMd {
+  width: 70%;
+  max-width: 14rem;
+  height: 0.85rem;
+  margin-bottom: 1.5rem;
+  animation-delay: 0.15s;
+}
+
+.card {
+  width: 100%;
+  max-width: 28rem;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 28px -18px rgba(0, 0, 0, 0.3);
+}
+
+.cardShimmer {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 11rem;
+  border-radius: 0.65rem;
+  background: linear-gradient(90deg, #e8e4df 0%, #f2eeea 45%, #e8e4df 90%);
+  margin-bottom: 1rem;
+  animation: pulse 1.1s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+.lineTitle {
+  height: 1.25rem;
+  width: 75%;
+  margin: 0 auto 0.5rem;
+  border-radius: 6px;
+  background: #ddd8d2;
+  animation: pulse 1.1s ease-in-out infinite;
+  animation-delay: 0.25s;
+}
+
+.lineMeta {
+  height: 1rem;
+  width: 55%;
+  margin: 0 auto;
+  border-radius: 6px;
+  background: #e5e0da;
+  animation: pulse 1.1s ease-in-out infinite;
+  animation-delay: 0.3s;
+}

@@ -7,6 +7,8 @@ export type PublicHarvestPayload = {
   startDate: string | null;
   startTime: string | null;
   endTime: string | null;
+  /** Airtable "Header Image URL" (same field as gng-dashboard). */
+  headerImageUrl: string | null;
 };
 
 function mapFieldsToPayload(recordId: string, fields: Record<string, unknown>): PublicHarvestPayload {
@@ -16,6 +18,7 @@ function mapFieldsToPayload(recordId: string, fields: Record<string, unknown>): 
     startDate: getStringField(fields, "Start Date"),
     startTime: getStringField(fields, "Start Time"),
     endTime: getStringField(fields, "End Time"),
+    headerImageUrl: getStringField(fields, "Header Image URL"),
   };
 }
 
@@ -44,6 +47,8 @@ export async function fetchCurrentPublicHarvest(): Promise<PublicHarvestPayload 
       filterByFormula: formula,
       sort: [{ field: "Last Modified", direction: "desc" }],
       maxRecords: 1,
+      // Smaller payload than full record; primary field is always returned by Airtable.
+      fields: ["Last Modified", "Start Date", "Start Time", "End Time", "Header Image URL"],
     })
     .firstPage();
 

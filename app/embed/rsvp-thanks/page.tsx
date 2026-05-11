@@ -1,7 +1,5 @@
-import { fetchCurrentPublicHarvest, fetchHarvestByRecordId } from "@/lib/public-harvest";
+import { getPublicHarvestForEmbedCached } from "@/lib/embed-harvest-cache";
 import styles from "./rsvp-thanks.module.css";
-
-export const dynamic = "force-dynamic";
 
 function formatWhen(input: {
   startDate: string | null;
@@ -29,11 +27,11 @@ export default async function RsvpThanksEmbedPage({
   const raw = sp.recordId;
   const recordId = Array.isArray(raw) ? raw[0]?.trim() : raw?.trim();
 
-  let harvest = null as Awaited<ReturnType<typeof fetchCurrentPublicHarvest>>;
+  let harvest = null as Awaited<ReturnType<typeof getPublicHarvestForEmbedCached>>;
   let loadError: string | null = null;
 
   try {
-    harvest = recordId ? await fetchHarvestByRecordId(recordId) : await fetchCurrentPublicHarvest();
+    harvest = await getPublicHarvestForEmbedCached(recordId);
   } catch (e) {
     loadError =
       e instanceof Error ? e.message : typeof e === "string" ? e : "Could not load harvest.";
@@ -69,6 +67,22 @@ export default async function RsvpThanksEmbedPage({
           <p className={styles.eyebrow}>You’re in</p>
           <h1 className={styles.title}>Thank you for RSVPing!</h1>
           <p className={styles.sub}>Here’s your harvest pickup details.</p>
+          {harvest.headerImageUrl ? (
+            <div className={styles.hero}>
+              {/* Remote image URLs from Airtable (arbitrary hosts); next/image would require dynamic remotePatterns. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className={styles.heroImg}
+                src={harvest.headerImageUrl}
+                alt={`${harvest.name} harvest`}
+                width={800}
+                height={450}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+              />
+            </div>
+          ) : null}
           <div className={styles.card}>
             <p className={styles.harvestName}>{harvest.name}</p>
             <p className={styles.meta}>{formatWhen(harvest)}</p>

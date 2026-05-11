@@ -101,9 +101,30 @@
 
 .sub {
   position: relative;
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.25rem;
   opacity: 0.88;
   color: #4a3728;
+}
+
+.hero {
+  position: relative;
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 auto 1.25rem;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  box-shadow: 0 4px 24px -12px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  animation: rise 0.75s ease-out 0.08s both;
+}
+
+.heroImg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 14rem;
+  object-fit: cover;
+  vertical-align: middle;
 }
 
 .card {

@@ -14,15 +14,20 @@
   includes the id and use SquareSpace code to forward it—iframe-only setups often use a fixed recordId
   per RSVP form).
 
-  Live embed URL (test in browser): YOUR_VERCEL_HOST/embed/rsvp-thanks
+  Live embed URL (test in browser): https://YOUR_VERCEL_HOST/embed/rsvp-thanks
+
+  Preconnect + eager iframe improve perceived load (TLS + HTML start earlier than lazy).
 -->
+
+<link rel="dns-prefetch" href="https://YOUR_VERCEL_HOST" />
+<link rel="preconnect" href="https://YOUR_VERCEL_HOST" crossorigin />
 
 <div style="max-width: 42rem; margin: 0 auto">
   <iframe
     title="RSVP confirmation"
     src="https://YOUR_VERCEL_HOST/embed/rsvp-thanks"
-    style="width: 100%; border: 0; display: block; min-height: 420px"
-    loading="lazy"
+    style="width: 100%; border: 0; display: block; min-height: 380px"
+    loading="eager"
     referrerpolicy="strict-origin-when-cross-origin"
   ></iframe>
 </div>

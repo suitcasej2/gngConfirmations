@@ -6,6 +6,7 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
         padding: 0,
         minHeight: "100vh",
         boxSizing: "border-box",
+        background: "#faf7f2",
         fontFamily:
           'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         WebkitFontSmoothing: "antialiased",
