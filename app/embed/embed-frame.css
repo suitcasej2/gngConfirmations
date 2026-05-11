@@ -1,0 +1,20 @@
+/* RSVP iframe: lock document height so inner layout never scrolls (confetti still paints on body). */
+html:has(#embed-frame-root),
+html:has(#embed-frame-root) body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+html:has(#embed-frame-root) body {
+  display: flex;
+  flex-direction: column;
+}
+
+#embed-frame-root {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}

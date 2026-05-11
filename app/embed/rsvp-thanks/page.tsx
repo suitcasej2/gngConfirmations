@@ -1,3 +1,4 @@
+import { RsvpConfetti } from "@/components/rsvp-confetti";
 import { messageFromUnknown } from "@/lib/airtable-errors";
 import { getPublicHarvestForEmbedCached } from "@/lib/embed-harvest-cache";
 import styles from "./rsvp-thanks.module.css";
@@ -37,58 +38,56 @@ export default async function RsvpThanksEmbedPage({
     loadError = messageFromUnknown(e);
   }
 
+  const showCelebration = Boolean(harvest && !loadError);
+
   return (
     <div className={styles.root}>
-      <div className={styles.burst} aria-hidden />
-      <span className={styles.sparkle} aria-hidden />
-      <span className={styles.sparkle} aria-hidden />
-      <span className={styles.sparkle} aria-hidden />
-      <span className={styles.sparkle} aria-hidden />
-      <span className={styles.sparkle} aria-hidden />
+      <RsvpConfetti enabled={showCelebration} />
 
-      {loadError ? (
-        <>
-          <p className={styles.eyebrow}>RSVP</p>
-          <h1 className={styles.title}>Something went wrong</h1>
-          <p className={`${styles.error} ${styles.muted}`}>{loadError}</p>
-        </>
-      ) : !harvest ? (
-        <>
-          <p className={styles.eyebrow}>You’re in</p>
-          <h1 className={styles.title}>Thank you for RSVPing!</h1>
-          <p className={styles.sub}>We couldn’t load pickup details.</p>
-          <p className={styles.muted}>
-            No harvest with status <strong>Sent</strong> was found, or add{" "}
-            <code>?recordId=rec…</code> to this embed URL for a specific harvest.
-          </p>
-        </>
-      ) : (
-        <>
-          <p className={styles.eyebrow}>You’re in</p>
-          <h1 className={styles.title}>Thank you for RSVPing!</h1>
-          <p className={styles.sub}>Here’s your harvest pickup details.</p>
-          {harvest.headerImageUrl ? (
-            <div className={styles.hero}>
-              {/* Remote image URLs from Airtable (arbitrary hosts); next/image would require dynamic remotePatterns. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className={styles.heroImg}
-                src={harvest.headerImageUrl}
-                alt={`${harvest.name} harvest`}
-                width={800}
-                height={450}
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-              />
+      <div className={styles.inner}>
+        {loadError ? (
+          <>
+            <p className={styles.eyebrow}>RSVP</p>
+            <h1 className={styles.title}>Something went wrong</h1>
+            <p className={`${styles.error} ${styles.muted}`}>{loadError}</p>
+          </>
+        ) : !harvest ? (
+          <>
+            <p className={styles.eyebrow}>You’re in</p>
+            <h1 className={styles.title}>Thank you for RSVPing!</h1>
+            <p className={styles.sub}>We couldn’t load pickup details.</p>
+            <p className={styles.muted}>
+              No harvest with status <strong>Sent</strong> was found, or add{" "}
+              <code>?recordId=rec…</code> to this embed URL for a specific harvest.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className={styles.eyebrow}>You’re in</p>
+            <h1 className={styles.title}>Thank you for RSVPing!</h1>
+            <p className={styles.sub}>Here’s your harvest pickup details.</p>
+            {harvest.headerImageUrl ? (
+              <div className={styles.hero}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className={styles.heroImg}
+                  src={harvest.headerImageUrl}
+                  alt={`${harvest.name} harvest`}
+                  width={800}
+                  height={450}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                />
+              </div>
+            ) : null}
+            <div className={styles.card}>
+              <p className={styles.harvestName}>{harvest.name}</p>
+              <p className={styles.meta}>{formatWhen(harvest)}</p>
             </div>
-          ) : null}
-          <div className={styles.card}>
-            <p className={styles.harvestName}>{harvest.name}</p>
-            <p className={styles.meta}>{formatWhen(harvest)}</p>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
